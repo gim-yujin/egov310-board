@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.example.board.board.service.impl.BoardDAO">
+
+    <resultMap id="boardResult" type="boardVO">
+        <id     property="boardNo" column="board_no"/>
+        <result property="title"   column="title"/>
+        <result property="content" column="content"/>
+        <result property="writer"  column="writer"/>
+        <result property="viewCnt" column="view_cnt"/>
+        <result property="regDt"   column="reg_dt"/>
+        <result property="updDt"   column="upd_dt"/>
+    </resultMap>
+
+    <insert id="insertBoard" parameterType="boardVO"
+            useGeneratedKeys="true" keyProperty="boardNo">
+        INSERT INTO tb_board (title, content, writer)
+        VALUES (#{title}, #{content}, #{writer})
+    </insert>
+
+    <select id="selectBoard" resultMap="boardResult">
+        SELECT board_no, title, content, writer, view_cnt, reg_dt, upd_dt
+        FROM tb_board
+        WHERE board_no = #{boardNo}
+    </select>
+
+    <update id="updateBoard" parameterType="boardVO">
+        UPDATE tb_board
+        SET title   = #{title},
+            content = #{content},
+            upd_dt  = CURRENT_TIMESTAMP
+        WHERE board_no = #{boardNo}
+    </update>
+
+    <delete id="deleteBoard">
+        DELETE FROM tb_board WHERE board_no = #{boardNo}
+    </delete>
+
+    <update id="increaseViewCount">
+        UPDATE tb_board SET view_cnt = view_cnt + 1 WHERE board_no = #{boardNo}
+    </update>
+
+    <sql id="boardWhere">
+        <where>
+            <if test="searchKeyword != null and searchKeyword != ''">
+                AND (title LIKE '%' || #{searchKeyword} || '%'
+                  OR content LIKE '%' || #{searchKeyword} || '%')
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectBoardList" parameterType="boardVO" resultMap="boardResult">
+        SELECT board_no, title, '' AS content, writer, view_cnt, reg_dt, upd_dt
+        FROM tb_board
+        <include refid="boardWhere"/>
+        ORDER BY board_no DESC
+        LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+    </select>
+
+    <select id="selectBoardCount" parameterType="boardVO" resultType="int">
+        SELECT COUNT(*)
+        FROM tb_board
+        <include refid="boardWhere"/>
+    </select>
+
+</mapper>

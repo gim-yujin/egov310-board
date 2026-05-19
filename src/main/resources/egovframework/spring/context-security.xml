@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans
+                                 http://www.springframework.org/schema/beans/spring-beans.xsd
+                                 http://www.springframework.org/schema/security
+                                 http://www.springframework.org/schema/security/spring-security.xsd">
+
+    <http pattern="/resources/**" security="none"/>
+
+    <http auto-config="false" use-expressions="true">
+        <intercept-url pattern="/"                access="permitAll"/>
+        <intercept-url pattern="/member/join"     access="permitAll"/>
+        <intercept-url pattern="/member/login"    access="permitAll"/>
+        <intercept-url pattern="/member/login/**" access="permitAll"/>
+        <intercept-url pattern="/board/**"        access="isAuthenticated()"/>
+        <intercept-url pattern="/**"              access="permitAll"/>
+
+        <form-login login-page="/member/login"
+                    login-processing-url="/member/login/process"
+                    username-parameter="memberId"
+                    password-parameter="password"
+                    default-target-url="/board/list"
+                    authentication-failure-url="/member/login?error=1"
+                    always-use-default-target="true"/>
+
+        <logout logout-url="/member/logout"
+                logout-success-url="/"
+                invalidate-session="true"
+                delete-cookies="JSESSIONID"/>
+
+        <csrf disabled="true"/>
+    </http>
+
+    <authentication-manager>
+        <authentication-provider user-service-ref="egovUserDetailsService">
+            <password-encoder ref="bcryptPasswordEncoder"/>
+        </authentication-provider>
+    </authentication-manager>
+
+    <beans:bean id="bcryptPasswordEncoder"
+                class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
+
+</beans:beans>

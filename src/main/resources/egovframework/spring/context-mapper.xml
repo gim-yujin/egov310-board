@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mybatis="http://mybatis.org/schema/mybatis-spring"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://mybatis.org/schema/mybatis-spring
+                           http://mybatis.org/schema/mybatis-spring.xsd">
+
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource"          ref="dataSource"/>
+        <property name="configLocation"      value="classpath:egovframework/mapper/config/sql-mapper-config.xml"/>
+        <property name="mapperLocations">
+            <list>
+                <value>classpath:egovframework/mapper/member/*.xml</value>
+                <value>classpath:egovframework/mapper/board/*.xml</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+        <constructor-arg index="0" ref="sqlSessionFactory"/>
+    </bean>
+
+    <mybatis:scan base-package="egovframework.example.board.member.service.impl,egovframework.example.board.board.service.impl"
+                  annotation="org.apache.ibatis.annotations.Mapper"/>
+
+</beans>

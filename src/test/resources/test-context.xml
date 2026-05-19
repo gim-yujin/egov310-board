@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+       xmlns:mybatis="http://mybatis.org/schema/mybatis-spring"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/context
+                           http://www.springframework.org/schema/context/spring-context.xsd
+                           http://www.springframework.org/schema/tx
+                           http://www.springframework.org/schema/tx/spring-tx.xsd
+                           http://www.springframework.org/schema/jdbc
+                           http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+                           http://mybatis.org/schema/mybatis-spring
+                           http://mybatis.org/schema/mybatis-spring.xsd">
+
+    <!-- 서비스/DAO 빈 스캔 (컨트롤러 제외) -->
+    <context:component-scan base-package="egovframework.example.board">
+        <context:exclude-filter type="annotation"
+                                expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+
+    <!-- H2 임베디드 데이터소스 -->
+    <jdbc:embedded-database id="dataSource" type="H2">
+        <jdbc:script location="classpath:schema-h2.sql"/>
+    </jdbc:embedded-database>
+
+    <!-- MyBatis -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource"     ref="dataSource"/>
+        <property name="configLocation" value="classpath:egovframework/mapper/config/sql-mapper-config.xml"/>
+        <property name="mapperLocations">
+            <list>
+                <value>classpath:egovframework/mapper/member/*.xml</value>
+                <value>classpath:egovframework/mapper/board/*.xml</value>
+            </list>
+        </property>
+    </bean>
+    <bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+        <constructor-arg index="0" ref="sqlSessionFactory"/>
+    </bean>
+    <mybatis:scan base-package="egovframework.example.board.member.service.impl,egovframework.example.board.board.service.impl"
+                  annotation="org.apache.ibatis.annotations.Mapper"/>
+
+    <!-- 트랜잭션 -->
+    <bean id="transactionManager"
+          class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+    <tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true"/>
+
+    <!-- BCrypt 인코더 (운영에서는 context-security.xml 에서 주입됨) -->
+    <bean id="passwordEncoder"
+          class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
+
+</beans>
